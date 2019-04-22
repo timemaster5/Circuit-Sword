@@ -29,9 +29,62 @@ void TCA_init() {
 }
 
 //--------------------------------------------------------------------------------------
+// DEBOUNCE INIT
+#define ARRAY_SIZE 16
+// array of pin state
+bool swStates[ARRAY_SIZE]={0};
+// array of previous pin state
+bool swPrevStates[ARRAY_SIZE]={0};
+// array to store the actual state during debounce
+bool swDebouncedStates[ARRAY_SIZE]={0};
+// array to store the previous state during debounce
+bool swPrevDebounceStates[ARRAY_SIZE]={0};
+// time to debounce
+int debounceDelay=80;
+// array of previous times the pin has been checked
+long prevTimes[ARRAY_SIZE]={0};
+
+//--------------------------------------------------------------------------------------
+// DEBOUNCE FUNCTIONS
+void debounceBtns(){
+
+  volatile long _millis=millis();
+
+  for(short sw=0;sw<ARRAY_SIZE;sw++){
+    if(swStates[sw]!=swPrevStates[sw]){
+      prevTimes[sw]=_millis;
+    }
+    if(_millis-prevTimes[sw]>debounceDelay){
+      prevTimes[sw]=_millis;
+      swDebouncedStates[sw]=swStates[sw];
+
+    }
+    swPrevStates[sw]=swStates[sw];
+  }
+
+}
+
+void checkStateChange(){
+  for(short sw=0;sw<ARRAY_SIZE;sw++){
+    if(swPrevDebounceStates[sw]!=swDebouncedStates[sw]){
+
+      if(swDebouncedStates[sw] == 1){
+        btns[sw] = 1;
+      }
+      if(swDebouncedStates[sw] == 0){
+        btns[sw] = 0;
+      }
+    }
+    swPrevDebounceStates[sw]=swDebouncedStates[sw];
+  }
+}
+
+//--------------------------------------------------------------------------------------
 // READ BUTTONS
 void readButtons() {
   // Read
+  int realBtnsOrder[]={
+  BTN_UP,BTN_DOWN, BTN_LEFT, BTN_RIGHT, BTN_A, BTN_B, BTN_X, BTN_Y, BTN_START, BTN_SELECT, BTN_L1, BTN_L2, BTN_R1, BTN_R2, BTN_C1, BTN_C2};
   uint8_t pos = 0;
   bool thisbtns[16];
   Wire.requestFrom(TCAADDR, 2); // request 2 bytes from slave device
@@ -45,23 +98,38 @@ void readButtons() {
     pos++;
   }
 
-  // Set the correct mapping.. this is VERY inefficient!!!
-  btns[B_UP] = thisbtns[BTN_UP];
-  btns[B_DOWN] = thisbtns[BTN_DOWN];
-  btns[B_LEFT] = thisbtns[BTN_LEFT];
-  btns[B_RIGHT] = thisbtns[BTN_RIGHT];
-  btns[B_A] = thisbtns[BTN_A];
-  btns[B_B] = thisbtns[BTN_B];
-  btns[B_X] = thisbtns[BTN_X];
-  btns[B_Y] = thisbtns[BTN_Y];
-  btns[B_START] = thisbtns[BTN_START];
-  btns[B_SELECT] = thisbtns[BTN_SELECT];
-  btns[B_L1] = thisbtns[BTN_L1];
-  btns[B_L2] = thisbtns[BTN_L2];
-  btns[B_R1] = thisbtns[BTN_R1];
-  btns[B_R2] = thisbtns[BTN_R2];
-  btns[B_C1] = thisbtns[BTN_C1];
-  btns[B_C2] = thisbtns[BTN_C2];
+  //debounce
+  for(short sw=0;sw<ARRAY_SIZE;sw++){
+    volatile int btn=btns[sw];
+    //volatile int mpBtn=btn;
+    volatile int btnPosition=sw;
+
+
+    // Set the correct mapping.. this is VERY inefficient!!!
+    //btns[B_UP] = thisbtns[BTN_UP];
+    //btns[B_DOWN] = thisbtns[BTN_DOWN];
+    //btns[B_LEFT] = thisbtns[BTN_LEFT];
+    //btns[B_RIGHT] = thisbtns[BTN_RIGHT];
+    //btns[B_A] = thisbtns[BTN_A];
+    //btns[B_B] = thisbtns[BTN_B];
+    //btns[B_X] = thisbtns[BTN_X];
+    //btns[B_Y] = thisbtns[BTN_Y];
+    //btns[B_START] = thisbtns[BTN_START];
+    //btns[B_SELECT] = thisbtns[BTN_SELECT];
+    //btns[B_L1] = thisbtns[BTN_L1];
+    //btns[B_L2] = thisbtns[BTN_L2];
+    //btns[B_R1] = thisbtns[BTN_R1];
+    //btns[B_R2] = thisbtns[BTN_R2];
+    //btns[B_C1] = thisbtns[BTN_C1];
+    //btns[B_C2] = thisbtns[BTN_C2];
+
+    //btns[sw] = thisbtns[realBtnsOrder[sw]]
+
+    swStates[btnPosition]=thisbtns[realBtnsOrder[sw]];
+  }
+
+  debounceBtns();
+  checkStateChange();
 
   // Populate the btns_char for quicker access
   for (uint8_t i=0; i<8; i++) {
