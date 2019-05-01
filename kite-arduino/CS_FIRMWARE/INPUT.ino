@@ -30,19 +30,19 @@ void TCA_init() {
 
 //--------------------------------------------------------------------------------------
 // DEBOUNCE INIT
-#define ARRAY_SIZE 16
+#define BTNS_COUNT 16
 // array of pin state
-bool swStates[ARRAY_SIZE]={0};
+bool swStates[BTNS_COUNT]={0};
 // array of previous pin state
-bool swPrevStates[ARRAY_SIZE]={0};
+bool swPrevStates[BTNS_COUNT]={0};
 // array to store the actual state during debounce
-bool swDebouncedStates[ARRAY_SIZE]={0};
+bool swDebouncedStates[BTNS_COUNT]={0};
 // array to store the previous state during debounce
-bool swPrevDebounceStates[ARRAY_SIZE]={0};
+bool swPrevDebounceStates[BTNS_COUNT]={0};
 // time to debounce
 int debounceDelay=80;
 // array of previous times the pin has been checked
-long prevTimes[ARRAY_SIZE]={0};
+long prevTimes[BTNS_COUNT]={0};
 
 //--------------------------------------------------------------------------------------
 // DEBOUNCE FUNCTIONS
@@ -50,7 +50,7 @@ void debounceBtns(){
 
   volatile long _millis=millis();
 
-  for(short sw=0;sw<ARRAY_SIZE;sw++){
+  for(short sw=0;sw<BTNS_COUNT;sw++){
     if(swStates[sw]!=swPrevStates[sw]){
       prevTimes[sw]=_millis;
     }
@@ -65,7 +65,7 @@ void debounceBtns(){
 }
 
 void checkStateChange(){
-  for(short sw=0;sw<ARRAY_SIZE;sw++){
+  for(short sw=0;sw<BTNS_COUNT;sw++){
     if(swPrevDebounceStates[sw]!=swDebouncedStates[sw]){
 
       if(swDebouncedStates[sw] == 1){
@@ -99,31 +99,9 @@ void readButtons() {
   }
 
   //debounce
-  for(short sw=0;sw<ARRAY_SIZE;sw++){
+  for(short sw=0;sw<BTNS_COUNT;sw++){
     volatile int btn=btns[sw];
-    //volatile int mpBtn=btn;
     volatile int btnPosition=sw;
-
-
-    // Set the correct mapping.. this is VERY inefficient!!!
-    //btns[B_UP] = thisbtns[BTN_UP];
-    //btns[B_DOWN] = thisbtns[BTN_DOWN];
-    //btns[B_LEFT] = thisbtns[BTN_LEFT];
-    //btns[B_RIGHT] = thisbtns[BTN_RIGHT];
-    //btns[B_A] = thisbtns[BTN_A];
-    //btns[B_B] = thisbtns[BTN_B];
-    //btns[B_X] = thisbtns[BTN_X];
-    //btns[B_Y] = thisbtns[BTN_Y];
-    //btns[B_START] = thisbtns[BTN_START];
-    //btns[B_SELECT] = thisbtns[BTN_SELECT];
-    //btns[B_L1] = thisbtns[BTN_L1];
-    //btns[B_L2] = thisbtns[BTN_L2];
-    //btns[B_R1] = thisbtns[BTN_R1];
-    //btns[B_R2] = thisbtns[BTN_R2];
-    //btns[B_C1] = thisbtns[BTN_C1];
-    //btns[B_C2] = thisbtns[BTN_C2];
-
-    //btns[sw] = thisbtns[realBtnsOrder[sw]]
 
     swStates[btnPosition]=thisbtns[realBtnsOrder[sw]];
   }
